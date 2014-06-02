@@ -9,6 +9,31 @@ build_dir=$1
 cache_dir=$2
 env_dir=$3
 
+
+# Install Perl
+PATH="$build_dir/local/bin:$PATH"
+
+export PERL5LIB="$build_dir/local/lib/perl5"
+export PERL_CPANM_OPT="--quiet --notest -l $BUILD_DIR/local"
+
+rm -rf $build_dir/local
+if [ -d $cache_dir/local ]; then
+  cp -a $cache_dir/local $build_dir/local
+fi
+
+cd $build_dir
+
+if ! [ -e $build_dir/local/bin/cpanm ]; then
+  echo "-----> Bootstrapping cpanm"
+  curl -L --silent https://raw.github.com/miyagawa/cpanminus/master/cpanm | perl - App::cpanminus 2>&1 | indent
+fi
+
+
+echo "-----> Installing dependencies"
+cpanm --installdeps . 2>&1 | indent
+
+
+
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
 # Load some convenience functions like status(), echo(), and indent()
